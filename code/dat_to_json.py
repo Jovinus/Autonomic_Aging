@@ -8,6 +8,7 @@ from tqdm import tqdm
 import pandas as pd
 import multiprocessing as mp
 import numpy as np
+from functools import partial
 # %%
 def read_dat_to_dict(file_nm):
     
@@ -57,7 +58,7 @@ def make_dataset(dir_path, save_path, df_table):
     subjects = np.array_split(subjects, mp.cpu_count())
     
     pool = mp.Pool(mp.cpu_count())
-    pool.map(dat_to_json, dir_path, save_path, df_table, subjects)
+    pool.map(partial(dat_to_json, dir_path, save_path, df_table), subjects)
     pool.close()
     pool.join()
             
@@ -74,3 +75,4 @@ def main():
 # %%
 if __name__ == '__main__':
     main()
+# %%
