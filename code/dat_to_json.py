@@ -99,8 +99,8 @@ def make_dataset(load_path, save_path, df_table):
     print("Process Finished!")
     
 def main():
-    LOAD_PATH = "/home/lkh256/Studio/INU/Autonomic_Aging/physionet.org/files/autonomic-aging-cardiovascular/1.0.0"
-    SAVE_PATH = "/home/lkh256/Studio/INU/Autonomic_Aging/data"
+    LOAD_PATH = "/home/lkh256/Studio/Autonomic_Aging/physionet.org/files/autonomic-aging-cardiovascular/1.0.0"
+    SAVE_PATH = "/home/lkh256/Studio/Autonomic_Aging/data"
     
     master_df = pd.read_csv(os.path.join(LOAD_PATH, 'subject-info.csv'))
     
