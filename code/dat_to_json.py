@@ -11,7 +11,8 @@ import numpy as np
 from functools import partial
 # %%
 def read_dat_to_dict(file_nm):
-    """Read .dat file and return data in dictionary type
+    """ 
+    Read .dat file and return data in dictionary type
 
     Args:
         file_nm (str): file path to load
@@ -24,7 +25,8 @@ def read_dat_to_dict(file_nm):
     return data
 
 def get_data_info(dict_data, df_table):
-    """Basic Preprocessing data: Merge dictionary with master table
+    """ 
+    Basic Preprocessing data: Merge dictionary with master table
 
     Args:
         dict_data (dict): dictionary types of data about given physionet .dat file 
@@ -49,7 +51,8 @@ def get_data_info(dict_data, df_table):
     
 
 def dat_to_json(load_path, save_path, df_table, subjects):
-    """ Save dictionary to JSON on given subject list
+    """ 
+    Save dictionary to JSON on given subject list
 
     Args:
         load_path (str): Directory path for loading data
@@ -76,7 +79,8 @@ def dat_to_json(load_path, save_path, df_table, subjects):
             json.dump(data, fp, indent=4)
 
 def make_dataset(load_path, save_path, df_table):
-    """Generate dataset with basic preprocessing in given save_path
+    """
+    Generate dataset with basic preprocessing in given save_path
 
     Args:
         load_path (str): Directory path for loading data
@@ -93,7 +97,7 @@ def make_dataset(load_path, save_path, df_table):
     ## Split data into chunk: num_data / num_cpu
     subjects = np.array_split(subjects, mp.cpu_count())
     
-    ## MultiProcessing
+    ## Multi-Processing
     process_map(partial(dat_to_json, load_path, save_path, df_table), subjects, max_workers=mp.cpu_count())
             
     print("Process Finished!")
