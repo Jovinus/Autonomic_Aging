@@ -4,7 +4,7 @@ from glob import glob
 import re
 import json
 from wfdb.io import rdrecord
-from tqdm import tqdm
+from tqdm.contrib.concurrent import process_map
 import pandas as pd
 import multiprocessing as mp
 import numpy as np
@@ -36,7 +36,7 @@ def dat_to_json(dir_path, save_path, df_table, subjects):
     
     subjects = subjects.tolist()
     
-    for subject in tqdm(subjects):
+    for subject in subjects:
         
         dict_data = read_dat_to_dict(os.path.join(dir_path, subject))
         
@@ -57,10 +57,7 @@ def make_dataset(dir_path, save_path, df_table):
 
     subjects = np.array_split(subjects, mp.cpu_count())
     
-    pool = mp.Pool(mp.cpu_count())
-    pool.map(partial(dat_to_json, dir_path, save_path, df_table), subjects)
-    pool.close()
-    pool.join()
+    process_map(partial(dat_to_json, dir_path, save_path, df_table), subjects, max_workers=mp.cpu_count())
             
     print("Process Finished!")
     
