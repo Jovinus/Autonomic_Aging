@@ -111,7 +111,7 @@ def make_dataset(
 
   ## Define Pattern and File Path
   PATTERN = r"\s*[/](?P<subject>\d*)[.]dat\s*"
-  file_list = glob(load_path + "/*.dat")
+  file_list = glob(str(load_path.joinpath("*.dat")))
 
   ## Get Subject by using regex
   subject_list = [re.search(pattern=PATTERN, string=x).group('subject') for x in file_list]
