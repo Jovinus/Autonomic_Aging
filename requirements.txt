@@ -1,4 +1,4 @@
-numpy @ file:///tmp/build/80754af9/numpy_and_numpy_base_1626264704411/work
+numpy==1.22.3
 pandas==1.3.5
-tqdm @ file:///tmp/build/80754af9/tqdm_1635330843403/work
+tqdm==4.63.0
 wfdb==3.4.1
