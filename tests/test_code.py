@@ -2,7 +2,7 @@ import pandas as pd
 
 from pathlib import Path
 
-from code.dat_to_json import make_dataset
+from main.dat_to_json import make_dataset
 from tests import __input_path__ as input_dir
 from tests import __output_path__ as output_dir
 
