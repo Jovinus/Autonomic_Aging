@@ -33,6 +33,28 @@ class CustomDataset(Dataset):
         label = self.master.loc[idx, 'label']
         
         return  rri, label
+    
+class ResampleDataset(Dataset):
+    def __init__(self, X_data, y_data) -> None:
+        super().__init__()
+        
+        self.data = torch.from_numpy(X_data).view(-1, 1, 1200).type(torch.float32)
+        self.label = torch.from_numpy(y_data).type(torch.LongTensor)
+        
+    def __len__(self):
+        return len(self.data)
+    
+    def __getitem__(self, idx):
+        
+        rri = self.data[idx, :]
+        label = self.label[idx]
+        
+        rri_mean, rri_std = torch.mean(rri), torch.std(rri)
+        
+        ## Normalizing
+        rri = (rri - rri_mean) / rri_std
+        
+        return  rri, label
 
 # %%
 def read_json_to_tensor(datapath):
@@ -50,7 +72,6 @@ def padd_seq(batch):
     x_pad = pad(x_pad.view(x_pad.shape[0], 1, -1), (0, 1200 - x_pad.shape[1]), "constant", 0)
     
     return x_pad, y
-
 # %%
 
 if __name__ == '__main__':
@@ -62,5 +83,13 @@ if __name__ == '__main__':
 
     for rri_1,  label in DataLoader(dataset, batch_size=32, shuffle=False, collate_fn=padd_seq):
         print(rri_1.shape,  label.shape)
-
+# %%
+    X_data = np.load("../output/train_x_resample.npy")
+    y_data = np.load("../output/train_y_resample.npy")
+# %%
+    train_dataset = ResampleDataset(X_data=X_data, y_data=y_data)
+# %%
+    for rri, label in DataLoader(train_dataset, batch_size=1024):
+        print(rri.shape) 
+        print(label.shape)
 # %%
