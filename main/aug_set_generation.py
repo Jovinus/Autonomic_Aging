@@ -4,7 +4,9 @@ import numpy as np
 import os
 import pandas as pd
 
-from imblearn.over_sampling import ADASYN
+from imblearn.combine import SMOTETomek
+from imblearn.over_sampling import ADASYN, RandomOverSampler
+from imblearn.under_sampling import RandomUnderSampler
 from sklearn.model_selection import train_test_split
 
 # %%
@@ -35,12 +37,43 @@ train_y = train_table['label'].values
 test_x = np.concatenate(test_table['RRI_value'])
 test_y = test_table['label'].values
 
+# %%
 ## Resampling using adasyn
 adasyn_oversample = ADASYN(random_state=1004, n_jobs=-1)
 train_x_resampled, train_y_resampled = adasyn_oversample.fit_resample(train_x, train_y)
 
+print(len(train_x_resampled))
+np.save(file="../output/train_x_adasyn.npy", arr=train_x_resampled)
+np.save(file="../output/train_y_adasyn.npy", arr=train_y_resampled)
+
 # %%
-np.save(file="../output/train_x_resample.npy", arr=train_x_resampled)
-np.save(file="../output/train_y_resample.npy", arr=train_y_resampled)
+## Resampling using RandomOver
+random_oversample = RandomOverSampler(random_state=1004)
+train_x_resampled, train_y_resampled = random_oversample.fit_resample(train_x, train_y)
+
+print(len(train_x_resampled))
+np.save(file="../output/train_x_random_over.npy", arr=train_x_resampled)
+np.save(file="../output/train_y_random_over.npy", arr=train_y_resampled)
+
+# %%
+## Resampling using random undersample
+random_undersample = RandomUnderSampler(random_state=1004)
+train_x_resampled, train_y_resampled = random_undersample.fit_resample(train_x, train_y)
+
+print(len(train_x_resampled))
+np.save(file="../output/train_x_random_under.npy", arr=train_x_resampled)
+np.save(file="../output/train_y_random_under.npy", arr=train_y_resampled)
+
+# %%
+## Resampling using combine - SMOTETomek
+combine_sample = SMOTETomek(random_state=1004, n_jobs=-1)
+train_x_resampled, train_y_resampled = combine_sample.fit_resample(train_x, train_y)
+print(len(train_x_resampled))
+
+np.save(file="../output/train_x_combine_sample.npy", arr=train_x_resampled)
+np.save(file="../output/train_y_combine_sample.npy", arr=train_y_resampled)
+
+# %%
 np.save(file="../output/test_x.npy", arr=test_x)
 np.save(file="../output/test_y.npy", arr=test_y)
+# %%
