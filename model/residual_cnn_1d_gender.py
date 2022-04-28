@@ -47,7 +47,7 @@ class Residual_CNN_Model(pl.LightningModule):
         self.res_block_3 = nn.ModuleList([Residual_Block(input_channels=64*2, output_channels=64*3, hidden_channels=64*3, stride=2)] + [Residual_Block(input_channels=64*3, output_channels=64*3, hidden_channels=64*3, stride=1) for i in range(5)])
         self.res_block_4 = nn.ModuleList([Residual_Block(input_channels=64*3, output_channels=64*4, hidden_channels=64*4, stride=2)] + [Residual_Block(input_channels=64*4, output_channels=64*4, hidden_channels=64*4, stride=1) for i in range(2)])
         
-        self.linear = nn.Sequential(nn.Linear(256, 1000),
+        self.linear = nn.Sequential(nn.Linear(257, 1000),
                                     nn.BatchNorm1d(num_features=1000),
                                     nn.ReLU(),
                                     nn.Dropout(),
@@ -61,7 +61,10 @@ class Residual_CNN_Model(pl.LightningModule):
         self.global_pool = nn.AvgPool1d(kernel_size=38)
     
     def forward(self, x):
-        y_cnn_block = self.cnn_block(x)
+        x_rri = x[:, :, :1200]
+        x_gender = x[:, :, 1200]
+        
+        y_cnn_block = self.cnn_block(x_rri)
         
         for i, j in enumerate(self.res_block_1):
             if i == 0:
@@ -80,18 +83,19 @@ class Residual_CNN_Model(pl.LightningModule):
         y_pooled = self.global_pool(y_h)
         # y_pooled = self.conv_1_1(y_h)
         
-        y_projected = nn.Flatten()(y_pooled)
+        y_flatten = nn.Flatten()(y_pooled)
         
-        y_out = self.linear(y_projected)
+        y_flatten = torch.cat((y_flatten, x_gender), dim=1)
+        
+        y_out = self.linear(y_flatten)
         
         
         return y_out
         
 # %%
 if __name__ == '__main__':
-    test = torch.rand((2, 1, 1200))
+    test = torch.rand((2, 1, 1201))
     
     cnn_layer = Residual_CNN_Model(output_class=15)
-    tmp = cnn_layer.forward(test.view(2, 1, 1200))
+    tmp = cnn_layer.forward(test.view(2, 1, 1201))
     print(tmp.shape)
-# %%
