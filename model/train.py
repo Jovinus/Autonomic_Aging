@@ -18,7 +18,7 @@ class Depression_Detection(pl.LightningModule):
         # self.loss = nn.CrossEntropyLoss()
         self.softmax = nn.Softmax(dim=1)
         self.accuracy = Accuracy()
-        self.model = Residual_CNN_Model(output_class=7)
+        self.model = Residual_CNN_Model(output_class=2)
         
     def forward(self, x):
         logits = self.model(x)
@@ -70,8 +70,8 @@ if __name__ == '__main__':
     df_con_matrix = pd.DataFrame()
     df_fig_curve = pd.DataFrame()
             
-    train_x = np.load("../output/train_x_random_under.npy")
-    train_y = np.load("../output/train_y_random_under.npy")
+    train_x = np.load("../output/train_x_random_over.npy")
+    train_y = np.load("../output/train_y_random_over.npy")
     
     valid_x = np.load("../output/test_x.npy")
     valid_y = np.load("../output/test_y.npy")
@@ -86,10 +86,10 @@ if __name__ == '__main__':
     
     model = Depression_Detection()
     
-    logger = TensorBoardLogger("tb_logs", name="autonomic_aging", version="random_undersample")
+    logger = TensorBoardLogger("tb_logs", name="autonomic_aging", version="binary_random_over")
     
     checkpoint_callback = ModelCheckpoint(monitor='val_loss',
-                                dirpath='check_point/random_undersample', 
+                                dirpath='check_point/binary_random_over', 
                                 filename="residual_cnn_{epoch:03d}_{val_loss:.2f}", 
                                 save_top_k=3, 
                                 mode='min')
@@ -119,4 +119,5 @@ if __name__ == '__main__':
     
     df_con_matrix = pd.concat((df_con_matrix, pred_log), axis=0)
         
-    df_con_matrix.reset_index(drop=True).to_csv("./aging_random_undersample.csv", index=False)
+    df_con_matrix.reset_index(drop=True).to_csv("./aging_binary_random_over.csv", index=False)
+# %%
