@@ -34,6 +34,31 @@ class CustomDataset(Dataset):
         
         return  rri, label
     
+class ResampleDataset_Gender(Dataset):
+    def __init__(self, X_data, y_data) -> None:
+        super().__init__()
+        
+        self.data = torch.from_numpy(X_data).view(-1, 1, 1201).type(torch.float32)
+        self.label = torch.from_numpy(y_data).type(torch.LongTensor)
+        
+    def __len__(self):
+        return len(self.data)
+    
+    def __getitem__(self, idx):
+        
+        rri = self.data[idx, :, :1200]
+        sex = self.data[idx, :, 1200]
+        label = self.label[idx]
+        
+        rri_mean, rri_std = torch.mean(rri), torch.std(rri)
+        
+        ## Normalizing
+        rri = (rri - rri_mean) / rri_std
+        
+        data = torch.cat((rri, sex.view(-1, 1)), axis=1)
+        
+        return  data, label
+    
 class ResampleDataset(Dataset):
     def __init__(self, X_data, y_data) -> None:
         super().__init__()
@@ -84,8 +109,8 @@ if __name__ == '__main__':
     for rri_1,  label in DataLoader(dataset, batch_size=32, shuffle=False, collate_fn=padd_seq):
         print(rri_1.shape,  label.shape)
 # %%
-    X_data = np.load("../output/train_x_resample.npy")
-    y_data = np.load("../output/train_y_resample.npy")
+    X_data = np.load("../output/train_x_random_over.npy")
+    y_data = np.load("../output/train_x_random_over.npy")
 # %%
     train_dataset = ResampleDataset(X_data=X_data, y_data=y_data)
 # %%
