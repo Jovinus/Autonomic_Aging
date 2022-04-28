@@ -89,8 +89,9 @@ class Residual_CNN_Model(pl.LightningModule):
         
 # %%
 if __name__ == '__main__':
-    test = torch.rand((2, 1200))
+    test = torch.rand((2, 1, 1200))
     
     cnn_layer = Residual_CNN_Model(output_class=15)
     tmp = cnn_layer.forward(test.view(2, 1, 1200))
     print(tmp.shape)
+# %%
