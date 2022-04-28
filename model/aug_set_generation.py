@@ -112,7 +112,7 @@ def get_data_hybrid(train_x:np.ndarray, train_y:np.ndarray) -> tuple:
     
     return train_x_resampled, train_y_resampled
 
-if __name__ == '__main__':
+def test():
     master_table = pd.read_csv("../output/rri_data/master_table.csv")
 
     master_table = master_table.query("Age_group.isin([1, 2, 3, 4, 11, 12, 13, 14, 15])", engine='python')
@@ -144,3 +144,7 @@ if __name__ == '__main__':
     
     train_x_resampled, train_y_resampled = get_data_hybrid(train_x, train_y)
     print(len(train_x_resampled))
+
+
+if __name__ == '__main__':
+    test()
