@@ -147,12 +147,18 @@ def main(config):
     ## stratified k-fold randomsplit (subject wise)
     data_splitter = StratifiedKFold(n_splits=5, shuffle=True, random_state=1004)
     
-    for num, (train_outer_idx, test_outer_idx) in enumerate(data_splitter.split(master_table['ID'], master_table['label2'])):
+    ## generate temporary table from data split (master_table))
+    tmp_master_table = master_table[['ID', 'label2']].drop_duplicates()
+    
+    for num, (train_outer_idx, test_outer_idx) in enumerate(data_splitter.split(tmp_master_table['ID'], tmp_master_table['label2'])):
         
         train_table, test_table = master_table.query("ID.isin(@train_outer_idx)", engine='python'), master_table.query("ID.isin(@test_outer_idx)", engine='python')
 
+        ## generate temporary table from data split (train_table))
+        tmp_train_table = train_table[['ID', 'label2']].drop_duplicates()
+        
         # train test split (subject wise)
-        train_inner_idx, valid_inner_idx = train_test_split(train_table['ID'], test_size=0.2, random_state=1004, stratify=train_table['label2'])
+        train_inner_idx, valid_inner_idx = train_test_split(tmp_train_table['ID'], test_size=0.2, random_state=1004, stratify=tmp_train_table['label2'])
         train_table, valid_table = train_table.query("ID.isin(@train_inner_idx)", engine='python'), train_table.query("ID.isin(@valid_inner_idx)", engine='python')
         
         ## make dataset to array
