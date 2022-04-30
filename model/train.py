@@ -1,21 +1,39 @@
-# %%
+import argparse
 import pytorch_lightning as pl
-from pytorch_lightning.callbacks import TQDMProgressBar, ModelCheckpoint
-from pytorch_lightning.loggers import TensorBoardLogger
+from sympy import FunctionClass
 import torch.nn as nn
 import torch
+
+from pytorch_lightning.callbacks import TQDMProgressBar, ModelCheckpoint
+from pytorch_lightning.loggers import TensorBoardLogger
+from sklearn.model_selection import train_test_split, StratifiedKFold
 from torchmetrics import Accuracy
-from my_dataloader import *
 from torch.utils.data import DataLoader
-from residual_cnn_1d import Residual_CNN_Model
+
+from aug_set_generation import *
 from custom_loss import Cosine_Loss
 from my_module import *
-# %%
-class Depression_Detection(pl.LightningModule):
+from my_dataloader import *
+from residual_cnn_1d import Residual_CNN_Model
+
+## Define Argparser
+parser = argparse.ArgumentParser(description="Autonomic Aging Classification training options")
+parser.add_argument("--gpu_id", type=int, default=0)
+parser.add_argument("--aug_mode", type=str, default="randomover")
+parser.add_argument("--max_epoch", type=int, default=400)
+parser.add_argument("--logdir", type=str, default="autonomic_aging")
+parser.add_argument("--class_type", type=str, default="binary")
+config = vars(parser.parse_args())
+
+class LitProgressBar(TQDMProgressBar):
+    def init_validation_tqdm(self):
+        bar = super().init_validation_tqdm()
+        return bar
+
+class Aging_Classification(pl.LightningModule):
     def __init__(self) -> None:
         super().__init__()
         self.loss = Cosine_Loss()
-        # self.loss = nn.CrossEntropyLoss()
         self.softmax = nn.Softmax(dim=1)
         self.accuracy = Accuracy()
         self.model = Residual_CNN_Model(output_class=2)
@@ -56,48 +74,29 @@ class Depression_Detection(pl.LightningModule):
         logits = self.forward(x)
         return logits, y, torch.argmax(logits, dim=1)
 
-class LitProgressBar(TQDMProgressBar):
-    def init_validation_tqdm(self):
-        bar = super().init_validation_tqdm()
-        return bar
 
-# %%
-if __name__ == '__main__':
-    
-    pl.seed_everything(1004, workers=True)
-    
-    df_metric = pd.DataFrame()
-    df_con_matrix = pd.DataFrame()
-    df_fig_curve = pd.DataFrame()
-            
-    train_x = np.load("../output/train_x_random_over.npy")
-    train_y = np.load("../output/train_y_random_over.npy")
-    
-    valid_x = np.load("../output/test_x.npy")
-    valid_y = np.load("../output/test_y.npy")
-    
-    train_dataset = ResampleDataset(X_data=train_x, y_data=train_y)
-    valid_dataset = ResampleDataset(X_data=valid_x, y_data=valid_y)
-    
-    trainset_loader = DataLoader(train_dataset, batch_size=2**10, shuffle=True, num_workers=8)
-    validset_loader = DataLoader(valid_dataset, batch_size=2**10, shuffle=False, num_workers=8)
+def train_model(model:pl.LightningModule, 
+                train_dataloaders:DataLoader, 
+                val_dataloaders:DataLoader, 
+                test_dataloaders:DataLoader,
+                dir_name:str,
+                version_name:str, 
+                config:dict) -> tuple:
     
     bar = LitProgressBar()
     
-    model = Depression_Detection()
-    
-    logger = TensorBoardLogger("tb_logs", name="autonomic_aging", version="binary_random_over")
+    logger = TensorBoardLogger("tb_logs", name=dir_name, version=version_name)
     
     checkpoint_callback = ModelCheckpoint(monitor='val_loss',
-                                dirpath='check_point/binary_random_over', 
+                                dirpath='check_point/' + version_name, 
                                 filename="residual_cnn_{epoch:03d}_{val_loss:.2f}", 
                                 save_top_k=3, 
                                 mode='min')
     
     trainer = pl.Trainer(logger=logger,
-                        max_epochs=400,
+                        max_epochs=config['max_epoch'],
                         accelerator='gpu', 
-                        devices=[0], 
+                        devices=[config['gpu_id']], 
                         gradient_clip_val=5, 
                         log_every_n_steps=1, 
                         accumulate_grad_batches=1,
@@ -105,19 +104,107 @@ if __name__ == '__main__':
                         deterministic=True)
     
     trainer.fit(model, 
-                train_dataloaders = trainset_loader, 
-                val_dataloaders = validset_loader)
+                train_dataloaders = train_dataloaders, 
+                val_dataloaders = val_dataloaders)
     
-    ## Retrieve the best model
     model = model.load_from_checkpoint(checkpoint_callback.best_model_path)
-
-    ## Log Prediction and Label
-    results = trainer.predict(model, dataloaders=validset_loader)
-    labels = torch.hstack([results[i][1] for i in range(len(results))]).cpu().numpy().tolist()
-    preds = torch.hstack([results[i][2] for i in range(len(results))]).cpu().numpy().tolist()
-    pred_log = pd.DataFrame({'label':labels, 'pred':preds})
     
-    df_con_matrix = pd.concat((df_con_matrix, pred_log), axis=0)
+    results = trainer.predict(model, dataloaders=test_dataloaders)
+    
+    return model, results
+
+
+def augmentation_mode(config: dict) -> FunctionClass:
+    """Select Augmentation Model
+
+    Args:
+        config (dict): configuration dictionary from argparser
+
+    Returns:
+        function: selected augmentation option
+    """
+    if config['aug_mode'] == 'adasyn':
+        aug_func = get_data_adasyn
+    elif config['aug_mode'] == 'randomover':
+        aug_func = get_data_randomover
+    elif config['aug_mode'] == 'randomunder':
+        aug_func = get_data_randomunder
+    elif config['aug_mode'] == 'hybrid':
+        aug_func = get_data_hybrid
+
+    return aug_func
+
+def main(config):
+    df_con_matrix = pd.DataFrame()
+            
+    master_table = pd.read_csv("../output/rri_data/master_table.csv")
+
+    master_table = master_table.query("Age_group.isin([1, 2, 3, 4, 11, 12, 13, 14, 15])", engine='python').reset_index(drop=True)
+
+    master_table = master_table.assign(label=lambda x: x['Age_group'] - 1, 
+                                       label2=lambda x: x['label'].map(label_mapper))
+    
+    ## stratified k-fold randomsplit (subject wise)
+    data_splitter = StratifiedKFold(n_splits=5, shuffle=True, random_state=1004)
+    
+    for num, (train_outer_idx, test_outer_idx) in enumerate(data_splitter.split(master_table['ID'], master_table['label2'])):
         
-    df_con_matrix.reset_index(drop=True).to_csv("./aging_binary_random_over.csv", index=False)
+        train_table, test_table = master_table.query("ID.isin(@train_outer_idx)", engine='python'), master_table.query("ID.isin(@test_outer_idx)", engine='python')
+
+        # train test split (subject wise)
+        train_inner_idx, valid_inner_idx = train_test_split(train_table['ID'], test_size=0.2, random_state=1004, stratify=train_table['label2'])
+        train_table, valid_table = train_table.query("ID.isin(@train_inner_idx)", engine='python'), train_table.query("ID.isin(@valid_inner_idx)", engine='python')
+        
+        ## make dataset to array
+        train_table = train_table.assign(RRI_value = lambda x: x['file_nm'].apply(lambda x: get_rri(file_nm=x, data_dir_path=DATAPATH))).reset_index(drop=True)
+        valid_table = valid_table.assign(RRI_value = lambda x: x['file_nm'].apply(lambda x: get_rri(file_nm=x, data_dir_path=DATAPATH))).reset_index(drop=True)
+        test_table = test_table.assign(RRI_value = lambda x: x['file_nm'].apply(lambda x: get_rri(file_nm=x, data_dir_path=DATAPATH))).reset_index(drop=True)
+
+        train_x = np.concatenate(train_table['RRI_value'])
+        train_y = train_table['label2'].values
+        
+        valid_x = np.concatenate(valid_table['RRI_value'])
+        valid_y = valid_table['label2'].values
+
+        test_x = np.concatenate(test_table['RRI_value'])
+        test_y = test_table['label2'].values
+        
+        aug_mode = augmentation_mode(config=config)
+        train_x, train_y = aug_mode(train_x=train_x, train_y=train_y)
+    
+        train_dataset = ResampleDataset(X_data=train_x, y_data=train_y)
+        valid_dataset = ResampleDataset(X_data=valid_x, y_data=valid_y)
+        test_dataset = ResampleDataset(X_data=test_x, y_data=test_y)
+        
+        trainset_loader = DataLoader(train_dataset, batch_size=2**10, shuffle=True, num_workers=8)
+        validset_loader = DataLoader(valid_dataset, batch_size=2**10, shuffle=False, num_workers=8)
+        testset_loader = DataLoader(test_dataset, batch_size=2**10, shuffle=False, num_workers=8)
+        
+        model = Aging_Classification()
+        
+        model, results = train_model(model=model, 
+                                     train_dataloaders=trainset_loader, 
+                                     val_dataloaders=validset_loader, 
+                                     test_dataloaders=testset_loader, 
+                                     dir_name=config['logdir'], 
+                                     version_name=config['class_type'] + "_" + config['aug_mode'] + "_cv_" + str(num), 
+                                     config=config
+                                     )
+
+        ## log proba, prediction and label
+        predicted_proba = torch.hstack([results[i][0][:, 1] for i in range(len(results))]).cpu().numpy().tolist()
+        labels = torch.hstack([results[i][1] for i in range(len(results))]).cpu().numpy().tolist()
+        predicted_labels = torch.hstack([results[i][2] for i in range(len(results))]).cpu().numpy().tolist()
+        pred_log = pd.DataFrame({'label':labels, 'predicted_proba':predicted_proba, 'predicted_label':predicted_labels})
+        pred_log['cv_num'] = num
+        
+        df_con_matrix = pd.concat((df_con_matrix, pred_log), axis=0)
+            
+    df_con_matrix.reset_index(drop=True).to_csv("./" + config['class_type'] + "_" + config['aug_mode'] + ".csv", index=False)
 # %%
+if __name__ == '__main__':
+    
+    ## set seed for reproducibility of studies
+    pl.seed_everything(1004, workers=True)
+    
+    main(config)
