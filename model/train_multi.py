@@ -7,7 +7,7 @@ import torch
 from pytorch_lightning.callbacks import TQDMProgressBar, ModelCheckpoint
 from pytorch_lightning.loggers import TensorBoardLogger
 from sklearn.model_selection import train_test_split, StratifiedKFold
-from torchmetrics import Accuracy
+from torchmetrics import Accuracy, R2Score
 from torch.utils.data import DataLoader
 
 from aug_set_generation import *
@@ -36,6 +36,7 @@ class Aging_Classification(pl.LightningModule):
         self.loss = Multi_Loss()
         self.softmax = nn.Softmax(dim=1)
         self.accuracy = Accuracy()
+        self.r2_score = R2Score()
         self.model = Residual_CNN_Model(output_class=4)
         
     def forward(self, x):
@@ -54,9 +55,11 @@ class Aging_Classification(pl.LightningModule):
         pred = self.forward(x)
         loss = self.loss(pred, y)
         acc = self.accuracy(torch.argmax(pred[:, 0:4], dim=1), y[:, 0])
+        r2_score = self.r2_score(pred[:, 4], y[:, 1])
         
-        self.log('train_loss', loss)
-        self.log('train_acc', acc)
+        metrics = {'train_loss':loss, 'train_acc':acc, 'train_r2':r2_score}
+        
+        self.log_dict(metrics)
         
         return loss
     
@@ -66,7 +69,9 @@ class Aging_Classification(pl.LightningModule):
         loss = self.loss(pred, y)
         
         val_acc = self.accuracy(torch.argmax(pred[:, 0:4], dim=1), y[:, 0])
-        metrics = {"val_loss":loss, "val_acc":val_acc}
+        val_r2_score = self.r2_score(pred[:, 4], y[:, 1])
+        
+        metrics = {"val_loss":loss, "val_acc":val_acc, 'val_r2':val_r2_score}
         self.log_dict(metrics, prog_bar=True)
         
         return {'loss':loss, 'val_acc':val_acc}
