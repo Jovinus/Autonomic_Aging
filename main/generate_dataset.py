@@ -111,9 +111,10 @@ def main() -> None:
     """
     main processing codews
     """
+    subject_info_file = "../input/physionet.org/files/autonomic-aging-cardiovascular/1.0.0/subject-info.csv"
+    
     ## Read master table
-    df_orig = pd.read_csv(
-        "../input/physionet.org/files/autonomic-aging-cardiovascular/1.0.0/subject-info.csv")
+    df_orig = pd.read_csv(subject_info_file)
     df_orig = df_orig.query("Age_group.notnull() & ID != 400",
                             engine='python').reset_index(drop=True)
 
