@@ -64,7 +64,7 @@ class ResampleDataset(Dataset):
         super().__init__()
         
         self.data = torch.from_numpy(X_data).view(-1, 1, 1200).type(torch.float32)
-        self.label = torch.from_numpy(y_data).type(torch.LongTensor)
+        self.label = torch.from_numpy(y_data).view(-1, 2).type(torch.LongTensor)
         
     def __len__(self):
         return len(self.data)
@@ -72,12 +72,14 @@ class ResampleDataset(Dataset):
     def __getitem__(self, idx):
         
         rri = self.data[idx, :]
-        label = self.label[idx]
+        label = self.label[idx, :]
         
         rri_mean, rri_std = torch.mean(rri), torch.std(rri)
         
         ## Normalizing
         rri = (rri - rri_mean) / rri_std
+        
+        # print(rri.shape, label.shape)
         
         return  rri, label
 
@@ -92,7 +94,7 @@ def read_json_to_tensor(datapath):
 # %%
 def padd_seq(batch):
     (x, y) = zip(*batch)
-    y = torch.LongTensor(y)
+    # y = torch.LongTensor(y)
     x_pad = pad_sequence(x, batch_first=True, padding_value=0.0)
     x_pad = pad(x_pad.view(x_pad.shape[0], 1, -1), (0, 1200 - x_pad.shape[1]), "constant", 0)
     

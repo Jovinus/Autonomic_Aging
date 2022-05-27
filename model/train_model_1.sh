@@ -1,0 +1,2 @@
+python train_multi.py --gpu_id 1 --aug_mode randomover --max_epoch 200 --logdir quad_aging_all_multilabel --class_type quad_aging_all_multilabel
+python train_multi.py --gpu_id 1 --aug_mode randomunder --max_epoch 200 --logdir quad_aging_all_multilabel --class_type quad_aging_all_multilabel
