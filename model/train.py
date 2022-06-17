@@ -16,7 +16,7 @@ from my_module import *
 from my_dataloader import *
 from residual_cnn_1d import Residual_CNN_Model
 
-## Define Argparser
+# Define Argparser
 parser = argparse.ArgumentParser(description="Autonomic Aging Classification training options")
 parser.add_argument("--gpu_id", type=int, default=0)
 parser.add_argument("--aug_mode", type=str, default="randomover")
@@ -31,12 +31,12 @@ class LitProgressBar(TQDMProgressBar):
         return bar
 
 class Aging_Classification(pl.LightningModule):
-    def __init__(self) -> None:
+    def __init__(self, num_class) -> None:
         super().__init__()
-        self.loss = Cosine_Loss()
+        self.loss = Cosine_Loss(num_class=num_class)
         self.softmax = nn.Softmax(dim=1)
         self.accuracy = Accuracy()
-        self.model = Residual_CNN_Model(output_class=4)
+        self.model = Residual_CNN_Model(output_class=num_class)
         
     def forward(self, x):
         logits = self.model(x)
@@ -152,8 +152,10 @@ def main(config):
                                        label2=lambda x: x['label'].map(label_mapper), 
                                        label_reg=lambda x: x['label'].map())
     
+    # master_table = master_table.groupby(['ID']).head(1).reset_index(drop=True)
+    
     ## stratified k-fold randomsplit (subject wise)
-    data_splitter = StratifiedKFold(n_splits=5, shuffle=True, random_state=1004)
+    data_splitter = StratifiedKFold(n_splits=10, shuffle=True, random_state=1004)
     
     ## generate temporary table from data split (master_table))
     tmp_master_table = master_table[['ID', 'label2']].drop_duplicates()
@@ -167,7 +169,7 @@ def main(config):
         
         # train test split (subject wise)
         train_inner_idx, valid_inner_idx = train_test_split(tmp_train_table['ID'], test_size=0.2, random_state=1004, stratify=tmp_train_table['label2'])
-        train_table, valid_table = train_table.query("ID.isin(@train_inner_idx)", engine='python'), train_table.query("ID.isin(@valid_inner_idx)", engine='python').groupby("ID").head(1)
+        train_table, valid_table = train_table.query("ID.isin(@train_inner_idx)", engine='python'), train_table.query("ID.isin(@valid_inner_idx)", engine='python').groupby(["ID"]).head(1)
         
         ## make dataset to array
         train_table = train_table.assign(RRI_value = lambda x: x['file_nm'].apply(lambda x: get_rri(file_nm=x, data_dir_path=DATAPATH))).reset_index(drop=True)
@@ -194,7 +196,7 @@ def main(config):
         validset_loader = DataLoader(valid_dataset, batch_size=2**10, shuffle=False, num_workers=8)
         testset_loader = DataLoader(test_dataset, batch_size=2**10, shuffle=False, num_workers=8)
         
-        model = Aging_Classification()
+        model = Aging_Classification(num_class=3)
         
         model, results = train_model(model=model, 
                                      train_dataloaders=trainset_loader, 
@@ -206,10 +208,11 @@ def main(config):
                                      )
 
         ## log proba, prediction and label
-        predicted_proba = torch.hstack([results[i][0][:, 1] for i in range(len(results))]).cpu().numpy().tolist()
+        # predicted_proba = torch.hstack([results[i][0][:, 1] for i in range(len(results))]).cpu().numpy().tolist()
         labels = torch.hstack([results[i][1] for i in range(len(results))]).cpu().numpy().tolist()
         predicted_labels = torch.hstack([results[i][2] for i in range(len(results))]).cpu().numpy().tolist()
-        pred_log = pd.DataFrame({'label':labels, 'predicted_proba':predicted_proba, 'predicted_label':predicted_labels})
+        # pred_log = pd.DataFrame({'label':labels, 'predicted_proba':predicted_proba, 'predicted_label':predicted_labels})
+        pred_log = pd.DataFrame({'label':labels, 'predicted_label':predicted_labels})
         pred_log['cv_num'] = num
         
         df_con_matrix = pd.concat((df_con_matrix, pred_log), axis=0)
