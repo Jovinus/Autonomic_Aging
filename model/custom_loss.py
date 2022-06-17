@@ -21,8 +21,8 @@ class Cosine_Loss(pl.LightningModule):
 class Multi_Loss(pl.LightningModule):
     def __init__(self) -> None:
         super().__init__()
-        # self.cross_entropy = nn.CrossEntropyLoss(weight=torch.Tensor([0.63, 0.14, 0.13, 0.1]))
-        self.cross_entropy = nn.CrossEntropyLoss()
+        self.cross_entropy = nn.CrossEntropyLoss(weight=torch.Tensor([0.37, 0.86, 0.87, 0.9]))
+        # self.cross_entropy = nn.CrossEntropyLoss()
         self.cosine_similarity = nn.CosineEmbeddingLoss(reduction="mean")
         self.condition = torch.Tensor([1])
         self.mse_loss = nn.MSELoss()
@@ -34,5 +34,5 @@ class Multi_Loss(pl.LightningModule):
         loss_cosine = self.cosine_similarity(pred_proba, F.one_hot(label_class, num_classes=4), 
                                              self.condition.type_as(loss_cross))
         loss_mse = self.mse_loss(pred_reg, label_reg) ## Numerical Value
-        loss = loss_cosine + 0.1 * loss_cross + loss_mse
+        loss = loss_cosine + 0.1 * loss_cross + 1.5 * loss_mse
         return loss

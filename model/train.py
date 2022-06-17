@@ -36,7 +36,7 @@ class Aging_Classification(pl.LightningModule):
         self.loss = Cosine_Loss()
         self.softmax = nn.Softmax(dim=1)
         self.accuracy = Accuracy()
-        self.model = Residual_CNN_Model(output_class=2)
+        self.model = Residual_CNN_Model(output_class=4)
         
     def forward(self, x):
         logits = self.model(x)
@@ -139,10 +139,18 @@ def main(config):
             
     master_table = pd.read_csv("../output/rri_data/master_table.csv")
 
-    master_table = master_table.query("Age_group.isin([1, 2, 3, 4, 11, 12, 13, 14, 15])", engine='python').reset_index(drop=True)
+    # master_table = master_table.query("Age_group.isin([2, 6, 7, 8])", engine='python')
+    # master_table = master_table.groupby(['ID']).head(1).reset_index(drop=True)
+    # master_table = master_table.query("Sex == 1").reset_index(drop=True)
+    reg_mapper = {0:18.5, 1:22.5, 2:27.5, 3:32.5, 4:37.5, 5:42.5, 6:47.5, 7:52.5, 
+                  8:57.5, 9:62.5, 10:67.5, 11:72.5, 12:77.5, 13:82.5, 14:88.5}
+    
+    label_mapper = {0:0, 1:0, 2:0, 3:1, 4:1, 5:2, 6:2, 7:3, 
+                8:3, 9:3, 10:3, 11:3, 12:3, 13:3, 14:3}
 
     master_table = master_table.assign(label=lambda x: x['Age_group'] - 1, 
-                                       label2=lambda x: x['label'].map(label_mapper))
+                                       label2=lambda x: x['label'].map(label_mapper), 
+                                       label_reg=lambda x: x['label'].map())
     
     ## stratified k-fold randomsplit (subject wise)
     data_splitter = StratifiedKFold(n_splits=5, shuffle=True, random_state=1004)
@@ -152,14 +160,14 @@ def main(config):
     
     for num, (train_outer_idx, test_outer_idx) in enumerate(data_splitter.split(tmp_master_table['ID'], tmp_master_table['label2'])):
         
-        train_table, test_table = master_table.query("ID.isin(@train_outer_idx)", engine='python'), master_table.query("ID.isin(@test_outer_idx)", engine='python')
+        train_table, test_table = master_table.query("ID.isin(@train_outer_idx)", engine='python'), master_table.query("ID.isin(@test_outer_idx)", engine='python').groupby(["ID"]).head(1)
 
         ## generate temporary table from data split (train_table))
         tmp_train_table = train_table[['ID', 'label2']].drop_duplicates()
         
         # train test split (subject wise)
         train_inner_idx, valid_inner_idx = train_test_split(tmp_train_table['ID'], test_size=0.2, random_state=1004, stratify=tmp_train_table['label2'])
-        train_table, valid_table = train_table.query("ID.isin(@train_inner_idx)", engine='python'), train_table.query("ID.isin(@valid_inner_idx)", engine='python')
+        train_table, valid_table = train_table.query("ID.isin(@train_inner_idx)", engine='python'), train_table.query("ID.isin(@valid_inner_idx)", engine='python').groupby("ID").head(1)
         
         ## make dataset to array
         train_table = train_table.assign(RRI_value = lambda x: x['file_nm'].apply(lambda x: get_rri(file_nm=x, data_dir_path=DATAPATH))).reset_index(drop=True)
