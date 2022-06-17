@@ -128,6 +128,7 @@ def make_dataset(subject_table: pd.DataFrame, save_path: str, subject_list: np.n
 
     return processed_df.reset_index(drop=True)
 
+
 def make_dataset_rri_hrv(subject_table: pd.DataFrame, save_path: str, subject_list: np.ndarray) -> pd.DataFrame:
     """
     Preprocessing the dataset for model training with RRI segmentation and master table
