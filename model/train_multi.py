@@ -92,10 +92,10 @@ def train_model(model:pl.LightningModule,
     
     bar = LitProgressBar()
     
-    logger = TensorBoardLogger("tb_logs", name=dir_name, version=version_name)
+    logger = TensorBoardLogger("../output/result/tb_logs", name=dir_name, version=version_name)
     
     checkpoint_callback = ModelCheckpoint(monitor='val_loss',
-                                dirpath='check_point/' + version_name, 
+                                dirpath='../output/result/check_point/' + version_name, 
                                 filename="residual_cnn_{epoch:03d}_{val_loss:.2f}", 
                                 save_top_k=3, 
                                 mode='min')
@@ -144,7 +144,7 @@ def augmentation_mode(config: dict) -> FunctionClass:
 def main(config):
     df_con_matrix = pd.DataFrame()
             
-    master_table = pd.read_csv("../output/rri_data/master_table.csv")
+    master_table = pd.read_csv("../output/dataset/rri_hrv_data/master_table_hrv_rri.csv")
 
     # master_table = master_table.query("Age_group.isin([2, 6, 7, 8])", engine='python')
     # master_table = master_table.groupby(['ID']).head(1).reset_index(drop=True)
@@ -225,7 +225,7 @@ def main(config):
         
         df_con_matrix = pd.concat((df_con_matrix, pred_log), axis=0)
             
-    df_con_matrix.reset_index(drop=True).to_csv("./" + config['class_type'] + "_" + config['aug_mode'] + ".csv", index=False)
+    df_con_matrix.reset_index(drop=True).to_csv("../output/result/" + config['class_type'] + "_" + config['aug_mode'] + ".csv", index=False)
 # %%
 if __name__ == '__main__':
     
