@@ -85,10 +85,10 @@ def train_model(model:pl.LightningModule,
     
     bar = LitProgressBar()
     
-    logger = TensorBoardLogger("tb_logs", name=dir_name, version=version_name)
+    logger = TensorBoardLogger("../output/result/tb_logs", name=dir_name, version=version_name)
     
     checkpoint_callback = ModelCheckpoint(monitor='val_loss',
-                                dirpath='check_point/' + version_name, 
+                                dirpath='../output/result/check_point/' + version_name, 
                                 filename="residual_cnn_{epoch:03d}_{val_loss:.2f}", 
                                 save_top_k=3, 
                                 mode='min')
