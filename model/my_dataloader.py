@@ -82,6 +82,23 @@ class ResampleDataset(Dataset):
         # print(rri.shape, label.shape)
         
         return  rri, label
+    
+class ResampleDataset_HRV(Dataset):
+    def __init__(self, X_data:np.ndarray, y_data:np.ndarray) -> None:
+        super().__init__()
+        
+        self.data = torch.from_numpy(X_data).view(-1, 20).type(torch.float32)
+        self.label = torch.from_numpy(y_data).view(-1, 2).type(torch.LongTensor)
+        
+    def __len__(self):
+        return len(self.data)
+    
+    def __getitem__(self, idx):
+        
+        hrv = self.data[idx, :]
+        label = self.label[idx, :]
+        
+        return  hrv, label
 
 # %%
 def read_json_to_tensor(datapath):
@@ -103,7 +120,7 @@ def padd_seq(batch):
 
 if __name__ == '__main__':
     DATAPATH = "../output/rri_data/"
-    table = pd.read_csv("../output/rri_data/master_table.csv")
+    table = pd.read_csv("../output/dataset/rri_hrv_data/master_table_hrv_rri.csv")
     table = table.assign(label = lambda x: x['Age_group'] -1 )
 # %%
     dataset = CustomDataset(data_table=table, data_dir=DATAPATH)
