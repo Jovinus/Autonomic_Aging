@@ -51,7 +51,7 @@ for file_nm in glob("./result/quad_aging_all_mul*_wei*"):
     calculate_metric(df_metric, target='label_class', predict='predicted_label')
 
 # %%
-for file_nm in glob("./result/quad_aging_all_mul*_wei*"):
+for file_nm in glob("../output/result/quad_aging_all_mul*_wei*"):
     print(file_nm)
     df_metric = pd.read_csv(file_nm)
     print(pd.crosstab(df_metric['label_class'], df_metric['predicted_label']))
