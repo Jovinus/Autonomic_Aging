@@ -16,20 +16,20 @@ def calculate_metric(df_log:pd.DataFrame, target:str, predict:str) -> None:
     print(f"\nAccuracy = {np.mean(metric):.3f} +- {np.std(metric):.3f}\n")
     return None
 # %%
-df_test = pd.read_csv("./result/tri_aging_women_adasyn.csv")
+df_test = pd.read_csv("../output/result/quad_aging_all_multilabel_loss_weighted_1_adasyn.csv")
 calculate_metric(df_test)
 # %%
 df_test = pd.read_csv("./binary_m_randomunder.csv")
 calculate_metric(df_test)
 
 # %%
-for file_nm in glob("./result/tri*.csv"):
+for file_nm in glob("../output/result/quad*.csv"):
     print(file_nm)
     df_metric = pd.read_csv(file_nm)
     print(pd.crosstab(df_metric['label'], df_metric['predicted_label']))
     calculate_metric(df_metric)
 # %%
-for file_nm in glob("./result/quad*"):
+for file_nm in glob("../output/result/quad*"):
     print(file_nm)
     df_metric = pd.read_csv(file_nm)
     print(pd.crosstab(df_metric['label_class'], df_metric['predicted_label']))
@@ -44,7 +44,7 @@ for file_nm in ["./result/quad_aging_adasyn.csv", "./result/quad_aging_hybrid.cs
     
 # %%
 
-for file_nm in glob("./result/quad_aging_all_mul*_wei*"):
+for file_nm in glob("../output/result/quad*_wei*"):
     print(file_nm)
     df_metric = pd.read_csv(file_nm)
     print(pd.crosstab(df_metric['label_class'], df_metric['predicted_label']))
