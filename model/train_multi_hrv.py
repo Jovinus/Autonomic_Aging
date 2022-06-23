@@ -182,7 +182,7 @@ def main(config):
         tmp_train_table = train_table[['ID', 'label_class', "label"]].drop_duplicates()
         
         # train test split (subject wise)
-        train_inner_idx, valid_inner_idx = train_test_split(tmp_train_table['ID'], test_size=0.2, random_state=1004, stratify=tmp_train_table["label"])
+        train_inner_idx, valid_inner_idx = train_test_split(tmp_train_table['ID'], test_size=1/4, random_state=1004, stratify=tmp_train_table["label"])
         train_table, valid_table = train_table.query("ID.isin(@train_inner_idx)", engine='python'), train_table.query("ID.isin(@valid_inner_idx)", engine='python').groupby("ID").head(1)
 
         train_x = train_table[HRV_FEATURE].values
