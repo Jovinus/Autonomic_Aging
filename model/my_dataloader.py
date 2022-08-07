@@ -34,11 +34,11 @@ class CustomDataset(Dataset):
         
         return  rri, label
     
-class ResampleDataset_Gender(Dataset):
+class ResampleDataset_RRI_HRV(Dataset):
     def __init__(self, X_data, y_data) -> None:
         super().__init__()
         
-        self.data = torch.from_numpy(X_data).view(-1, 1, 1201).type(torch.float32)
+        self.data = torch.from_numpy(X_data).view(-1, 1, 1220).type(torch.float32)
         self.label = torch.from_numpy(y_data).type(torch.LongTensor)
         
     def __len__(self):
@@ -47,7 +47,7 @@ class ResampleDataset_Gender(Dataset):
     def __getitem__(self, idx):
         
         rri = self.data[idx, :, :1200]
-        sex = self.data[idx, :, 1200]
+        hrv = self.data[idx, :, 1200:]
         label = self.label[idx]
         
         rri_mean, rri_std = torch.mean(rri), torch.std(rri)
@@ -55,7 +55,7 @@ class ResampleDataset_Gender(Dataset):
         ## Normalizing
         rri = (rri - rri_mean) / rri_std
         
-        data = torch.cat((rri, sex.view(-1, 1)), axis=1)
+        data = torch.cat((rri, hrv.view(-1, 20)), axis=1)
         
         return  data, label
     
