@@ -15,8 +15,8 @@ from my_module import *
 class Depression_Detection(pl.LightningModule):
     def __init__(self) -> None:
         super().__init__()
-        self.loss = Cosine_Loss()
-        # self.loss = nn.CrossEntropyLoss()
+        # self.loss = Cosine_Loss()
+        self.loss = nn.CrossEntropyLoss()
         self.softmax = nn.Softmax(dim=1)
         self.accuracy = Accuracy()
         self.model = Residual_CNN_Model(output_class=15)
@@ -111,7 +111,7 @@ if __name__ == '__main__':
             trainer = pl.Trainer(logger=logger,
                                 max_epochs=400,
                                 accelerator='gpu', 
-                                devices=[0], 
+                                devices=[0, 1, 2], 
                                 gradient_clip_val=5, 
                                 log_every_n_steps=1, 
                                 accumulate_grad_batches=1,

@@ -23,17 +23,20 @@ def calculate_metric(df_log:pd.DataFrame, target:str, predict:str) -> None:
     print(f"\nMacro F1 Score = {np.mean(f1_metric_macro):.3f} +- {np.std(f1_metric_macro)*1.96:.3f}\n")
     return None
 
+
 def calculate_bootstrap_metric(
     df_log:pd.DataFrame, 
     target:str, 
     predict:str, 
     n_bootstrap:int
 ) -> None:
+
     
     acc = []
     f1_macro = []
     f1_weighted = []
     
+
     for _ in range(n_bootstrap):
         sampled_df = resample(
             df_log, 
@@ -76,6 +79,7 @@ def calculate_bootstrap_metric(
     metrics_df = pd.DataFrame(metrics)
         
     return metrics_df
+
 
 # %%
 for file_nm in glob("../output/result/quad*_1_*.csv"):
