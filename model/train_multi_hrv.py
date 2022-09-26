@@ -194,8 +194,8 @@ def main(config):
         test_x = test_table[HRV_FEATURE].values
         test_y = test_table[['label_class', 'label_reg']].values
         
-        aug_mode = augmentation_mode(config=config)
-        train_x, train_y = aug_mode(train_x=train_x, train_y=train_y)
+        # aug_mode = augmentation_mode(config=config)
+        # train_x, train_y = aug_mode(train_x=train_x, train_y=train_y)
         train_y = np.concatenate((np.vectorize(label_mapper.get)(train_y).reshape(-1, 1), np.vectorize(reg_mapper.get)(train_y).reshape(-1, 1)), axis=1)
         
         train_dataset = ResampleDataset_HRV(X_data=train_x, y_data=train_y)

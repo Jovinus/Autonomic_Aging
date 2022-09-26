@@ -112,7 +112,7 @@ def plot_bar_bootstrap_metrics(dataframe, x, y, file_nm, dpi=500):
 def plot_bar_bootstrap_metrics_v2(dataframe, x, y, col, hue, file_nm, dpi=500):
     
     x_order = ["HRV", "RRI", "RRI & HRV"]
-    hue_order = ["RandomUnder", "RandomOver", "Hybrid", "ADASYN"]
+    hue_order = ["RandomUnder", "Naive", "RandomOver", "Hybrid", "ADASYN"]
     
     fig, ax = plt.subplots(1, 1, figsize=(10, 10), facecolor='w')
     
@@ -154,27 +154,30 @@ def bootstrap_result_generator():
     df_rri_hybrid_metrics = pd.read_csv("../output/result/metric/bootstrap_metric_quad_aging_all_multilabel_loss_weighted_1_hybrid.csv").assign(Data = "RRI", Sampling="Hybrid")
     df_rri_randomover_metrics = pd.read_csv("../output/result/metric/bootstrap_metric_quad_aging_all_multilabel_loss_weighted_1_randomover.csv").assign(Data = "RRI", Sampling="RandomOver")
     df_rri_randomunder_metrics = pd.read_csv("../output/result/metric/bootstrap_metric_quad_aging_all_multilabel_loss_weighted_1_randomunder.csv").assign(Data = "RRI", Sampling="RandomUnder")
+    df_rri_naive_metrics = pd.read_csv("../output/result/metric/bootstrap_metric_quad_aging_all_multilabel_loss_weighted_1_naive.csv").assign(Data = "RRI", Sampling="Naive")
     
     df_hrv_adasyn_metrics = pd.read_csv("../output/result/metric/bootstrap_metric_quad_aging_all_multilabel_loss_weighted_hrv_1_adasyn.csv").assign(Data = "HRV", Sampling="ADASYN")
     df_hrv_hybrid_metrics = pd.read_csv("../output/result/metric/bootstrap_metric_quad_aging_all_multilabel_loss_weighted_hrv_1_hybrid.csv").assign(Data = "HRV", Sampling="Hybrid")
     df_hrv_randomover_metrics = pd.read_csv("../output/result/metric/bootstrap_metric_quad_aging_all_multilabel_loss_weighted_hrv_1_randomover.csv").assign(Data = "HRV", Sampling="RandomOver")
     df_hrv_randomunder_metrics = pd.read_csv("../output/result/metric/bootstrap_metric_quad_aging_all_multilabel_loss_weighted_hrv_1_randomunder.csv").assign(Data = "HRV", Sampling="RandomUnder")
+    df_hrv_naive_metrics = pd.read_csv("../output/result/metric/bootstrap_metric_quad_aging_all_multilabel_loss_weighted_hrv_1_naive.csv").assign(Data = "HRV", Sampling="Naive")
     
     df_rri_hrv_adasyn_metrics = pd.read_csv("../output/result/metric/bootstrap_metric_quad_aging_all_multilabel_loss_weighted_1_rri_hrv_adasyn.csv").assign(Data = "RRI & HRV", Sampling="ADASYN")
     df_rri_hrv_hybrid_metrics = pd.read_csv("../output/result/metric/bootstrap_metric_quad_aging_all_multilabel_loss_weighted_1_rri_hrv_hybrid.csv").assign(Data = "RRI & HRV", Sampling="Hybrid")
     df_rri_hrv_randomover_metrics = pd.read_csv("../output/result/metric/bootstrap_metric_quad_aging_all_multilabel_loss_weighted_1_rri_hrv_randomover.csv").assign(Data = "RRI & HRV", Sampling="RandomOver")
     df_rri_hrv_randomunder_metrics = pd.read_csv("../output/result/metric/bootstrap_metric_quad_aging_all_multilabel_loss_weighted_1_rri_hrv_randomunder.csv").assign(Data = "RRI & HRV", Sampling="RandomUnder")
+    df_rri_hrv_naive_metrics = pd.read_csv("../output/result/metric/bootstrap_metric_quad_aging_all_multilabel_loss_weighted_1_rri_hrv_naive.csv").assign(Data = "RRI & HRV", Sampling="Naive")
     
     df_bootstrap_metrics = pd.concat(
         [
             df_rri_adasyn_metrics, df_rri_hybrid_metrics, 
-            df_rri_randomover_metrics, df_rri_randomunder_metrics,
+            df_rri_randomover_metrics, df_rri_randomunder_metrics, df_rri_naive_metrics,
             
             df_hrv_adasyn_metrics, df_hrv_hybrid_metrics, 
-            df_hrv_randomover_metrics, df_hrv_randomunder_metrics,
+            df_hrv_randomover_metrics, df_hrv_randomunder_metrics, df_hrv_naive_metrics,
             
             df_rri_hrv_adasyn_metrics, df_rri_hrv_hybrid_metrics, 
-            df_rri_hrv_randomover_metrics, df_rri_hrv_randomunder_metrics,
+            df_rri_hrv_randomover_metrics, df_rri_hrv_randomunder_metrics, df_rri_hrv_naive_metrics,
         ], 
         axis=0
     ).reset_index(drop=True)

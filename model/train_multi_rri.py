@@ -82,23 +82,27 @@ class Aging_Classification(pl.LightningModule):
         return pred[:, 4], y[:, 1], torch.argmax(pred[:, 0:4], dim=1), y[:, 0]
 
 
-def train_model(model:pl.LightningModule, 
-                train_dataloaders:DataLoader, 
-                val_dataloaders:DataLoader, 
-                test_dataloaders:DataLoader,
-                dir_name:str,
-                version_name:str, 
-                config:dict) -> tuple:
+def train_model(
+    model:pl.LightningModule, 
+    train_dataloaders:DataLoader, 
+    val_dataloaders:DataLoader, 
+    test_dataloaders:DataLoader,
+    dir_name:str,
+    version_name:str, 
+    config:dict
+) -> tuple:
     
     bar = LitProgressBar()
     
     logger = TensorBoardLogger("../output/result/tb_logs", name=dir_name, version=version_name)
     
-    checkpoint_callback = ModelCheckpoint(monitor='val_loss',
-                                dirpath='../output/result/check_point/' + version_name, 
-                                filename="residual_cnn_{epoch:03d}_{val_loss:.2f}", 
-                                save_top_k=3, 
-                                mode='min')
+    checkpoint_callback = ModelCheckpoint(
+        monitor='val_loss',
+        dirpath='../output/result/check_point/' + version_name, 
+        filename="residual_cnn_{epoch:03d}_{val_loss:.2f}", 
+        save_top_k=3, 
+        mode='min'
+    )
     
     trainer = pl.Trainer(logger=logger,
                         max_epochs=config['max_epoch'],
@@ -110,9 +114,11 @@ def train_model(model:pl.LightningModule,
                         callbacks=[bar, checkpoint_callback], 
                         deterministic=True)
     
-    trainer.fit(model, 
-                train_dataloaders = train_dataloaders, 
-                val_dataloaders = val_dataloaders)
+    trainer.fit(
+        model, 
+        train_dataloaders = train_dataloaders, 
+        val_dataloaders = val_dataloaders
+    )
     
     model = model.load_from_checkpoint(checkpoint_callback.best_model_path)
     
@@ -190,8 +196,8 @@ def main(config):
         test_x = np.concatenate(test_table['RRI_value'])
         test_y = test_table[['label_class', 'label_reg']].values
         
-        aug_mode = augmentation_mode(config=config)
-        train_x, train_y = aug_mode(train_x=train_x, train_y=train_y)
+        # aug_mode = augmentation_mode(config=config)
+        # train_x, train_y = aug_mode(train_x=train_x, train_y=train_y)
         train_y = np.concatenate((np.vectorize(label_mapper.get)(train_y).reshape(-1, 1), np.vectorize(reg_mapper.get)(train_y).reshape(-1, 1)), axis=1)
         
         train_dataset = ResampleDataset(X_data=train_x, y_data=train_y)

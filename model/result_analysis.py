@@ -37,12 +37,12 @@ def calculate_bootstrap_metric(
     f1_weighted = []
     
 
-    for _ in range(n_bootstrap):
+    for i in range(n_bootstrap):
         sampled_df = resample(
             df_log, 
             replace=True, 
             n_samples=300, 
-            # random_state=1004
+            random_state=i
         )
         
         calc_acc = accuracy_score(
@@ -89,10 +89,10 @@ for file_nm in glob("../output/result/quad*_1_*.csv"):
     
     print(pd.crosstab(df_metric['label_class'], df_metric['predicted_label']))
     
-    # bootstrap_metrics = calculate_bootstrap_metric(df_metric, target='label_class', predict='predicted_label', n_bootstrap=100)
+    bootstrap_metrics = calculate_bootstrap_metric(df_metric, target='label_class', predict='predicted_label', n_bootstrap=100)
     
-    # save_file_nm = "../output/result/metric/bootstrap_metric_" + file_nm.split('/')[-1]
-    # bootstrap_metrics.to_csv(save_file_nm, encoding='utf-8', index=False)
+    save_file_nm = "../output/result/metric/bootstrap_metric_" + file_nm.split('/')[-1]
+    bootstrap_metrics.to_csv(save_file_nm, encoding='utf-8', index=False)
     
     calculate_metric(df_metric, target='label_class', predict='predicted_label')
 # %%
