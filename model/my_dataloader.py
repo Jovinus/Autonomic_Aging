@@ -100,6 +100,72 @@ class ResampleDataset_HRV(Dataset):
         
         return  hrv, label
 
+class ResampleDataset_HRV_Single(Dataset):
+    def __init__(self, X_data:np.ndarray, y_data:np.ndarray) -> None:
+        super().__init__()
+        
+        self.data = torch.from_numpy(X_data).view(-1, 20).type(torch.float32)
+        self.label = torch.from_numpy(y_data).view(-1, ).type(torch.LongTensor)
+        
+    def __len__(self):
+        return len(self.data)
+    
+    def __getitem__(self, idx):
+        
+        hrv = self.data[idx, :]
+        label = self.label[idx]
+        
+        return  hrv, label
+
+class ResampleDataset_Single(Dataset):
+    def __init__(self, X_data, y_data) -> None:
+        super().__init__()
+        
+        self.data = torch.from_numpy(X_data).view(-1, 1, 1200).type(torch.float32)
+        self.label = torch.from_numpy(y_data).view(-1, ).type(torch.LongTensor)
+        
+    def __len__(self):
+        return len(self.data)
+    
+    def __getitem__(self, idx):
+        
+        rri = self.data[idx, :]
+        label = self.label[idx]
+        
+        rri_mean, rri_std = torch.mean(rri), torch.std(rri)
+        
+        ## Normalizing
+        rri = (rri - rri_mean) / rri_std
+        
+        # print(rri.shape, label.shape)
+        
+        return  rri, label
+
+class ResampleDataset_RRI_HRV_Single(Dataset):
+    def __init__(self, X_data, y_data) -> None:
+        super().__init__()
+        
+        self.data = torch.from_numpy(X_data).view(-1, 1, 1220).type(torch.float32)
+        self.label = torch.from_numpy(y_data).view(-1, ).type(torch.LongTensor)
+        
+    def __len__(self):
+        return len(self.data)
+    
+    def __getitem__(self, idx):
+        
+        rri = self.data[idx, :, :1200]
+        hrv = self.data[idx, :, 1200:]
+        label = self.label[idx]
+        
+        rri_mean, rri_std = torch.mean(rri), torch.std(rri)
+        
+        ## Normalizing
+        rri = (rri - rri_mean) / rri_std
+        
+        data = torch.cat((rri, hrv.view(-1, 20)), axis=1)
+        
+        return  data, label
+
 # %%
 def read_json_to_tensor(datapath):
     with open(datapath) as json_file:

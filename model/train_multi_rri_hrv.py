@@ -14,7 +14,7 @@ from aug_set_generation import *
 from custom_loss import Multi_Loss
 from my_module import *
 from my_dataloader import *
-from residual_cnn_1d_hrv import Residual_CNN_Model
+from residual_cnn_1d_hrv_multioutput import Residual_CNN_Model
 
 ## Define Argparser
 parser = argparse.ArgumentParser(description="Autonomic Aging Classification training options")

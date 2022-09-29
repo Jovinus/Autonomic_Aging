@@ -150,7 +150,7 @@ def main(config):
 
     master_table = master_table.assign(label=lambda x: x['Age_group'] - 1, 
                                        label2=lambda x: x['label'].map(label_mapper), 
-                                       label_reg=lambda x: x['label'].map())
+                                       label_reg=lambda x: x['label'].map(reg_mapper))
     
     # master_table = master_table.groupby(['ID']).head(1).reset_index(drop=True)
     

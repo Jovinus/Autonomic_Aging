@@ -57,7 +57,6 @@ class Residual_CNN_Model(pl.LightningModule):
                                     nn.Dropout())
         
         self.linear_class = nn.Linear(1000, output_class)
-        self.linear_reg = nn.Linear(1000, 1)
         
         # self.conv_1_1 = nn.Conv1d(in_channels=64*4, out_channels=1, kernel_size=1)
         self.global_pool = nn.AvgPool1d(kernel_size=38)
@@ -92,9 +91,8 @@ class Residual_CNN_Model(pl.LightningModule):
         y_linear = self.linear(y_projected)
         
         y_out_class = self.linear_class(y_linear)
-        y_out_reg = self.linear_reg(y_linear)
         
-        y_out = torch.concat((y_out_class, y_out_reg), dim=1)
+        y_out = y_out_class
         
         
         return y_out
