@@ -142,6 +142,8 @@ def augmentation_mode(config: dict) -> FunctionClass:
         aug_func = get_data_randomunder
     elif config['aug_mode'] == 'hybrid':
         aug_func = get_data_hybrid
+    elif config['aug_mode'] == "naive":
+        aug_func = None
 
     return aug_func
 
@@ -193,8 +195,11 @@ def main(config):
         test_x = np.concatenate(test_table['RRI_value'])
         test_y = test_table[['label_class']].values
         
-        # aug_mode = augmentation_mode(config=config)
-        # train_x, train_y = aug_mode(train_x=train_x, train_y=train_y)
+        aug_mode = augmentation_mode(config=config)
+        
+        if aug_mode is not None:
+            train_x, train_y = aug_mode(train_x=train_x, train_y=train_y)
+        
         train_y = np.vectorize(label_mapper.get)(train_y).reshape(-1, 1)
         
         train_dataset = ResampleDataset_Single(X_data=train_x, y_data=train_y)
