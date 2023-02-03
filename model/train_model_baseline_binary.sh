@@ -1,0 +1,1 @@
+python train_multi_rri_3.py --gpu_id 0 --aug_mode adasyn --max_epoch 500 --logdir binary_aging_all --class_type binary_aging_all
