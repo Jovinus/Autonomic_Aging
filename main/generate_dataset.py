@@ -31,7 +31,7 @@ def _segment_rri(rri_interp: np.ndarray) -> list:
 def _segment_ecg_generate_hrv_rri(ecg_array:np.ndarray, sampling_rate, sliding_window_sec=300) -> dict:
     
     segment_index = [i for i in range(sliding_window_sec*sampling_rate, len(ecg_array), sliding_window_sec*sampling_rate)]
-    segmented_ecgs = [ecg_array[i-sliding_window_sec*sampling_rate:i+sliding_window_sec*sampling_rate] for i in segment_index]
+    segmented_ecgs = [ecg_array[i-150*sampling_rate:i+150*sampling_rate] for i in segment_index]
     
     if (len(segmented_ecgs[-1]) / sliding_window_sec*sampling_rate != 1):
         segmented_ecgs = segmented_ecgs[:-1]
