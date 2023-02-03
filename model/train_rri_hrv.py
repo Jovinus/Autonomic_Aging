@@ -36,7 +36,7 @@ class Aging_Classification(pl.LightningModule):
         super().__init__()
         self.loss = Cosine_Loss(num_class=4)
         self.softmax = nn.Softmax(dim=1)
-        self.accuracy = Accuracy()
+        self.accuracy = Accuracy(task="multiclass", num_classes=4)
         self.model = Residual_CNN_Model(output_class=4)
         
     def forward(self, x):

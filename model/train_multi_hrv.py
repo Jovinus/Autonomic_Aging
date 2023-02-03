@@ -36,7 +36,7 @@ class Aging_Classification(pl.LightningModule):
         super().__init__()
         self.loss = Multi_Loss(num_class=4)
         self.softmax = nn.Softmax(dim=1)
-        self.accuracy = Accuracy()
+        self.accuracy = Accuracy(task="multiclass", num_classes=4)
         self.r2_score = R2Score()
         self.model = hrv_fcl_model(in_features=20, out_class=4)
         
