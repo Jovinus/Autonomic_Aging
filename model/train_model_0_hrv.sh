@@ -1,1 +1,0 @@
-python train_multi_hrv.py --gpu_id 0 --aug_mode adasyn --max_epoch 500 --logdir quad_aging_all_multilabel_loss_weighted_hrv_1 --class_type quad_aging_all_multilabel_loss_weighted_hrv_1
