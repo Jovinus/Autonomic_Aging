@@ -30,11 +30,8 @@ def _segment_rri(rri_interp: np.ndarray) -> list:
 
 def _segment_ecg_generate_hrv_rri(ecg_array:np.ndarray, sampling_rate, sliding_window_sec=300) -> dict:
     
-    segment_index = [i for i in range(sliding_window_sec*sampling_rate, len(ecg_array), sliding_window_sec*sampling_rate)]
-    segmented_ecgs = [ecg_array[i-150*sampling_rate:i+150*sampling_rate] for i in segment_index]
-    
-    if (len(segmented_ecgs[-1]) / sliding_window_sec*sampling_rate != 1):
-        segmented_ecgs = segmented_ecgs[:-1]
+    segment_index = [i for i in range(0, len(ecg_array), sliding_window_sec*sampling_rate)]
+    segmented_ecgs = [ecg_array[i:i+300*sampling_rate] for i in segment_index if len(ecg_array) >= (i + 300*sampling_rate)]
     
     hrv_df = pd.DataFrame()
     processed_rri = []
@@ -180,7 +177,7 @@ def main() -> None:
         engine='python'
     ).reset_index(drop=True)
 
-    SAVEPATH = "../output/dataset/rri_hrv_data_no"
+    SAVEPATH = "../output/dataset/rri_hrv_data_osw_300"
 
     ## Split dataset for multi-processing
     subject_list = np.array_split(df_orig['ID'].values, mp.cpu_count())
