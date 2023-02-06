@@ -24,6 +24,7 @@ parser.add_argument("--max_epoch", type=int, default=400)
 parser.add_argument("--logdir", type=str, default="autonomic_aging")
 parser.add_argument("--class_type", type=str, default="binary")
 parser.add_argument("--analysis", type=str, default="main")
+parser.add_argument("--dataset", type=str, default="rri_hrv_data_ows_75")
 config = vars(parser.parse_args())
 
 class LitProgressBar(TQDMProgressBar):
@@ -95,11 +96,11 @@ def train_model(
     
     bar = LitProgressBar()
     
-    logger = TensorBoardLogger("../output/result/tb_logs", name=dir_name, version=version_name)
+    logger = TensorBoardLogger(f"../output/result/{config['dataset']}/tb_logs", name=dir_name, version=version_name)
     
     checkpoint_callback = ModelCheckpoint(
         monitor='val_loss',
-        dirpath='../output/result/check_point/' + version_name, 
+        dirpath=f"../output/result/{config['dataset']}/check_point/" + version_name, 
         filename="hrv_fcl_{epoch:03d}_{val_loss:.2f}", 
         save_top_k=3, 
         mode='min'
@@ -163,8 +164,9 @@ def main(config):
     ]
     
     df_con_matrix = pd.DataFrame()
-            
-    master_table = pd.read_csv("../output/dataset/rri_hrv_data_no/master_table_hrv_rri.csv")
+    
+    DATAPATH = f"../output/dataset/{config['dataset']}"        
+    master_table = pd.read_csv(os.path.join(DATAPATH, "master_table_hrv_rri.csv"))
 
     if config['analysis'] == "main":
 
@@ -298,7 +300,7 @@ def main(config):
         
         df_con_matrix = pd.concat((df_con_matrix, pred_log), axis=0)
             
-    df_con_matrix.reset_index(drop=True).to_csv("../output/result/" + config['class_type'] + "_" + config['aug_mode'] + ".csv", index=False)
+    df_con_matrix.reset_index(drop=True).to_csv(f"../output/result/{config['dataset']}/" + config['class_type'] + "_" + config['aug_mode'] + ".csv", index=False)
 # %%
 if __name__ == '__main__':
     
