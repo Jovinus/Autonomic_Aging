@@ -39,8 +39,6 @@ label_mapper = {1:0, 5:1, 6:1, 7:1} # Binary (2, 6-8)
 label_mapper = {0:0, 1:0, 2:0, 3:1, 4:1, 5:2, 6:2, 7:3, 
                 8:3, 9:3, 10:3, 11:3, 12:3, 13:3, 14:3}
 
-DATAPATH = "../output/dataset/rri_hrv_data_no"
-
 def get_rri(file_nm: str, data_dir_path: str) -> np.ndarray:
     """
     Read RRI from JSON file from given directory and file name
@@ -129,6 +127,8 @@ def get_data_hybrid(train_x:np.ndarray, train_y:np.ndarray) -> tuple:
     return train_x_resampled, train_y_resampled
 
 def test():
+    DATAPATH = "../output/dataset/rri_hrv_data_no"
+    
     master_table = pd.read_csv("../output/rri_data/master_table.csv")
 
     master_table = master_table.query("Age_group.isin([1, 2, 3, 4, 11, 12, 13, 14, 15])", engine='python')
