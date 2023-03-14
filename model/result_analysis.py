@@ -41,7 +41,7 @@ def calculate_bootstrap_metric(
         sampled_df = resample(
             df_log, 
             replace=True, 
-            n_samples=300, 
+            n_samples=1000, 
             random_state=i
         )
         
@@ -66,9 +66,9 @@ def calculate_bootstrap_metric(
         f1_macro.append(calc_f1_macro)
         f1_weighted.append(calc_f1_weighted)
         
-    print(f"\nAccuracy = {np.mean(acc):.3f} +- {np.std(acc)*1.96:.3f}")
-    print(f"Macro F1 Score = {np.mean(f1_macro):.3f} +- {np.std(f1_macro)*1.96:.3f}")
-    print(f"Weighted F1 Score = {np.mean(f1_weighted):.3f} +- {np.std(f1_weighted)*1.96:.3f}\n")
+    print(f"\nAccuracy = {np.mean(acc):.3f} +- {np.std(acc)*1.96/np.sqrt(n_bootstrap):.3f}")
+    print(f"Macro F1 Score = {np.mean(f1_macro):.3f} +- {np.std(f1_macro)/np.sqrt(n_bootstrap)*1.96:.3f}")
+    print(f"Weighted F1 Score = {np.mean(f1_weighted):.3f} +- {np.std(f1_weighted)/np.sqrt(n_bootstrap)*1.96:.3f}\n")
     
     metrics = {
         "accuracy": acc, 
@@ -82,14 +82,14 @@ def calculate_bootstrap_metric(
 
 
 # %%
-for file_nm in glob("../output/result/quad*_1_*.csv"):
+for file_nm in glob("../output/result/binary*.csv"):
     
     print(file_nm)
     df_metric = pd.read_csv(file_nm)
     
     print(pd.crosstab(df_metric['label_class'], df_metric['predicted_label']))
     
-    bootstrap_metrics = calculate_bootstrap_metric(df_metric, target='label_class', predict='predicted_label', n_bootstrap=100)
+    bootstrap_metrics = calculate_bootstrap_metric(df_metric, target='label_class', predict='predicted_label', n_bootstrap=300)
     
     save_file_nm = "../output/result/metric/bootstrap_metric_" + file_nm.split('/')[-1]
     bootstrap_metrics.to_csv(save_file_nm, encoding='utf-8', index=False)

@@ -113,7 +113,7 @@ def train_model(
         max_epochs=config['max_epoch'],
         accelerator='gpu', 
         devices=[config['gpu_id']], 
-        gradient_clip_val=1, 
+        gradient_clip_val=4, 
         log_every_n_steps=1, 
         accumulate_grad_batches=1,
         callbacks=[bar, checkpoint_callback], 

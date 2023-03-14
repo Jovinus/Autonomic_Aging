@@ -287,10 +287,11 @@ def main(config):
         ## log proba, prediction and label
         predicted_labels = torch.hstack([results[i][0] for i in range(len(results))]).cpu().numpy().tolist()
         labels_class = torch.hstack([results[i][1] for i in range(len(results))]).cpu().numpy().tolist()
+        predicted_proba = torch.hstack([results[i][2][1] for i in range(len(results))]).cpu().numpy().tolist()
         
         pred_log = pd.DataFrame(
             {
-                'predicted_label':predicted_labels, 'label_class':labels_class
+                'predicted_label':predicted_labels, 'label_class':labels_class, 'predicted_proba':predicted_proba,
             }
         )
         pred_log['cv_num'] = num
